@@ -9,7 +9,7 @@ import { Button, Input } from '../components/ui';
 
 const Login = () => {
   const { user, login } = useAuth();
-  const { config } = useConfig();
+  const { loadConfig } = useConfig();
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState({ username: '', password: '' });
@@ -24,6 +24,7 @@ const Login = () => {
     setError('');
     try {
       await login(formData.username, formData.password);
+      await loadConfig();
       toast.success('Identity Verified. Welcome.');
       navigate('/dashboard');
     } catch (err) {

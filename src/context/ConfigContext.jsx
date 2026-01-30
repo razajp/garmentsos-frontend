@@ -16,45 +16,41 @@ export const ConfigProvider = ({ children }) => {
   const [isExpired, setIsExpired] = useState(false);
 
   const loadConfig = useCallback(async () => {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    setLoading(false);
-    return;
-  }
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setLoading(false);
+      return;
+    }
 
-  try {
-    const [configRes, optionsRes] = await Promise.all([
-      api.get('/config'),
-      api.get('/options')
-    ]);
-    
-    setConfig(configRes.data.data);
-    setOptions(optionsRes.data.data);
-    
-    const expiryDate = new Date(configRes.data.data.subscriptionExpiry);
-    if (new Date() > expiryDate) setIsExpired(true);
+    try {
+      // Pehle config mangwayein status check karne ke liye
+      const configRes = await api.get('/config');
+      const configData = configRes.data.data;
+      setConfig(configData);
 
-  } catch (error) {
-    // Console mein error dikhega (Red color mein), wo normal hai.
-    // Hum sirf data extract karenge.
-    if (error.response?.status === 403) {
-      setIsExpired(true);
-      
-      // Backend se jo 403 wala response aaya wo yahan error.response.data mein hai
-      const expiredData = error.response.data;
-      
-      if (expiredData && (expiredData.data || expiredData.expiredOn)) {
+      const expiryDate = new Date(configData.subscriptionExpiry);
+      if (new Date() > expiryDate) {
+        setIsExpired(true);
+      } else {
+        setIsExpired(false);
+        // Agar expired nahi hai, tabhi options load karein
+        const optionsRes = await api.get('/options');
+        setOptions(optionsRes.data.data);
+      }
+    } catch (error) {
+      if (error.response?.status === 403) {
+        setIsExpired(true);
+        const expiredData = error.response.data;
         setConfig({
           subscriptionExpiry: expiredData.data?.subscriptionExpiry || expiredData.expiredOn,
           companyName: expiredData.data?.companyName || 'Your System'
         });
       }
+      console.warn("Security Alert: Subscription status re-evaluated.");
+    } finally {
+      setLoading(false);
     }
-    console.warn("System in Lockdown Mode: Subscription Expired.");
-  } finally {
-    setLoading(false);
-  }
-}, []);
+  }, []);
 
   useEffect(() => { loadConfig(); }, [loadConfig]);
 

@@ -53,7 +53,7 @@ const Sidebar = () => {
             <h1 className="font-bold text-slate-900 text-lg leading-tight tracking-tight">
               GarmentsOS
             </h1>
-            <p className="text-[11px] font-medium text-slate-400 uppercase tracking-widest">{config.developer.powered_by || 'SparkPair'}</p>
+            <p className="text-[11px] font-medium text-slate-400 uppercase tracking-widest">{config?.developer.powered_by || 'SparkPair'}</p>
           </div>
         </div>
 

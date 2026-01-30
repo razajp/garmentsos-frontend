@@ -1,15 +1,12 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import { useAuth } from './context/AuthContext';
 import { useConfig } from './context/ConfigContext';
 
-// Layouts
 import MainLayout from './layouts/MainLayout';
-
-// Pages
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import { ArticleList, ArticleForm, ArticleView } from './pages/articles';
@@ -19,30 +16,62 @@ import Settings from './pages/Settings';
 import SubscriptionExpired from './pages/SubscriptionExpired';
 import { PageLoader } from './components/ui/Loader';
 
-// Protected Route
+// Protected Route Wrapper
 const ProtectedRoute = ({ children, requireDeveloper = false }) => {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { isExpired } = useConfig();
 
-  if (loading) return <PageLoader />;
+  if (authLoading) return <PageLoader />;
   if (!user) return <Navigate to="/login" replace />;
+  if (isExpired) return null; // Logic useEffect handle karega
+
   if (requireDeveloper && user.role !== 'developer') {
     return <Navigate to="/dashboard" replace />;
   }
-
   return children;
 };
 
 function App() {
-  const { isExpired, loading: configLoading, config } = useConfig();
+  const { isExpired, loading: configLoading, loadConfig } = useConfig();
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  if (configLoading) return <PageLoader />;
-  
-  if (isExpired) return <SubscriptionExpired />;
+  // 1. RE-CHECK ON ROUTE CHANGE:
+  // Har baar jab location.pathname badlega, ye backend se taza status mangwayega
+  useEffect(() => {
+    if (user && location.pathname !== '/login') {
+      loadConfig();
+    }
+  }, [location.pathname, user, loadConfig]);
+
+  // 2. NAVIGATION LOCK:
+  // Expiry status ke hisab se redirection handle karega
+  useEffect(() => {
+    if (configLoading || authLoading) return;
+
+    const path = location.pathname;
+
+    if (user && isExpired) {
+      if (path !== '/subscription-expired') {
+        navigate('/subscription-expired', { replace: true });
+      }
+    } 
+    else if (user && !isExpired && path === '/subscription-expired') {
+      navigate('/dashboard', { replace: true });
+    }
+    else if (!user && path === '/subscription-expired') {
+      navigate('/login', { replace: true });
+    }
+  }, [isExpired, user, configLoading, authLoading, location.pathname, navigate]);
+
+  if (configLoading || authLoading) return <PageLoader />;
 
   return (
     <>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/subscription-expired" element={<SubscriptionExpired />} />
         
         <Route path="/" element={
           <ProtectedRoute>

@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ShieldAlert, Mail, Phone, Globe, LogOut } from 'lucide-react';
 import { Button } from '../components/ui';
 import { useConfig } from '../context/ConfigContext';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const SubscriptionExpired = () => {
   const { config } = useConfig();
   const { logout } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6 font-sans">
@@ -58,7 +60,7 @@ const SubscriptionExpired = () => {
               <Button 
                 variant="outline" 
                 size='lg'
-                onClick={logout}
+                onClick={() => {logout(); navigate('/login')}}
                 icon={LogOut}
               >
                 Sign out

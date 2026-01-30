@@ -125,3 +125,31 @@ input[type="checkbox"] {
   margin-bottom: 12px !important;
   overflow: visible !important; /* Bounce ke liye space chahiye */
 }
+
+@media screen {
+  .print-only { display: none !important; }
+}
+
+@media print {
+  /* Screen ke sab components hide kardo */
+  body * { visibility: hidden; }
+  
+  /* Sirf print-only container aur uske children ko dikhao */
+  .print-only, .print-only * { visibility: visible; }
+  
+  .print-only {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    display: block !important;
+  }
+
+  /* Page margins handle karein */
+  @page {
+    size: A5;
+    margin: 0;
+    size: auto;
+    margin: 5mm;
+  }
+}

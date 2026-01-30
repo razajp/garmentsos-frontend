@@ -6,6 +6,7 @@ import { MetricTile, InfoRow } from '../../components/ui/Card';
 import { Button, ConfirmationModal, Loader, PageHeader } from '../../components/ui';
 import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useConfig } from '../../context/ConfigContext';
 
 const ArticleView = () => {
   const { id } = useParams();
@@ -14,6 +15,7 @@ const ArticleView = () => {
   const [loading, setLoading] = useState(true);
   const [deleteModal, setDeleteModal] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
+  const { config } = useConfig();
 
   useEffect(() => {
     articlesAPI.getOne(id)
@@ -43,7 +45,91 @@ const ArticleView = () => {
   if (loading) return <Loader size="lg" className="h-full" />;
 
   return (
-    <div className="h-full flex flex-col gap-5">
+    <div className="h-full flex flex-col gap-5"><div className="print-only font-sans">
+        <div className="p-5 pb-3 border border-black rounded-xl bg-white">
+          {/* Header */}
+          <div className="flex justify-between items-end border-b border-slate-400 pb-3 mb-4">
+            <div>
+              <h1 className="text-xl font-bold uppercase leading-none">Article Details</h1>
+              <p className="text-[9px] font-medium text-slate-600 tracking-widest uppercase mt-1">
+                {config.company.name} - Manufacturing Unit
+              </p>
+            </div>
+            <div className="text-right">
+              <h2 className="text-xl font-bold leading-none">{article.article_no}</h2>
+              <p className="text-[9px] font-medium uppercase text-slate-600">{article.season} Collection</p>
+            </div>
+          </div>
+
+          {/* Metadata Grid (Inline Styles) */}
+          <div className="grid grid-cols-4 gap-3 mb-4">
+            <div className="px-3 pt-2.5 pb-2 bg-slate-100 border border-slate-400 rounded-lg">
+              <span className="block text-[8px] font-bold uppercase text-slate-600 leading-none">Category</span>
+              <span className="text-[11px] font-semibold leading-none">{article.category}</span>
+            </div>
+            <div className="px-3 pt-2.5 pb-2 bg-slate-100 border border-slate-400 rounded-lg">
+              <span className="block text-[8px] font-bold uppercase text-slate-600 leading-none">Fabric</span>
+              <span className="text-[11px] font-semibold leading-none">{article.fabric_type}</span>
+            </div>
+            <div className="px-3 pt-2.5 pb-2 bg-slate-100 border border-slate-400 rounded-lg">
+              <span className="block text-[8px] font-bold uppercase text-slate-600 leading-none">Ratio</span>
+              <span className="text-[11px] font-semibold leading-none">{article.size}</span>
+            </div>
+            <div className="px-3 pt-2.5 pb-2 bg-slate-100 border border-slate-400 rounded-lg">
+              <span className="block text-[8px] font-bold uppercase text-slate-600 leading-none">Lot Qty</span>
+              <span className="text-[11px] font-semibold leading-none">{article.quantity} pcs</span>
+            </div>
+          </div>
+
+          {/* Rates Table */}
+          <table className="w-full mb-5 border-collapse">
+            <thead>
+              <tr className="text-white text-[9px] uppercase tracking-wider">
+                <th className="px-3 py-2 bg-black rounded-s-md text-left">Category</th>
+                <th className="px-3 py-2 bg-black text-left">Description</th>
+                <th className="px-3 py-2 bg-black rounded-e-md text-right">Price (PKR)</th>
+              </tr>
+            </thead>
+            <tbody className="text-[11px]">
+              {article.rates?.map((rate, i) => (
+                <tr key={i} className="border-b border-slate-300">
+                  <td className="px-3 py-1.5 font-bold uppercase text-slate-600 text-[8px]">{rate.category}</td>
+                  <td className="px-3 py-1.5 font-semibold text-slate-700">{rate.title}</td>
+                  <td className="px-3 py-1.5 text-right font-bold tracking-tight">Rs. {rate.price.toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Pricing Box & Notes */}
+          <div className="grid grid-cols-2 gap-6 items-start">
+            <div className="border border-dashed border-slate-500 px-3.5 py-3 rounded-xl bg-slate-50">
+              <h4 className="text-[9px] font-bold uppercase text-slate-600 mb-1">Market Pricing</h4>
+              <div className="text-[11px] flex justify-between font-bold">
+                <span>Costing:</span>
+                <span>Rs. {article.total_cost.toLocaleString()}</span>
+              </div>
+              <hr className='my-1 border-slate-300'/>
+              <div className="text-[11px] flex justify-between font-bold">
+                <span>Sale Price:</span>
+                <span>Rs. {article.sales_rate.toLocaleString()}</span>
+              </div>
+            </div>
+            <div className="p-1">
+              <h4 className="text-[9px] font-bold uppercase text-slate-600 mb-0.5 underline">Notes</h4>
+              <p className="text-[10px] text-slate-700 italic leading-tight line-clamp-3">
+                {article.description || "No notes available."}
+              </p>
+            </div>
+          </div>
+
+          {/* Footer Signatures */}
+          <div className="w-full mt-4 pt-2 border-t border-slate-400 text-center text-[8px] font-semibold tracking-wide text-slate-600">
+            This is a system-generated document • GarmentsOS by SparkPair • {new Date().toLocaleDateString()}
+          </div>
+        </div>
+      </div>
+
       {/* Top Navigation & Actions */}
       <PageHeader 
         title={article.article_no}

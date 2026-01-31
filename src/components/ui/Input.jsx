@@ -3,13 +3,21 @@ import React, { forwardRef } from 'react';
 const Input = forwardRef(({
   label, error, type = 'text', className = '', containerClassName = '', 
   required = true, helperText, leftIcon: LeftIcon, rightIcon: RightIcon, 
-  onRightIconClick, disabled = false, ...props
+  onRightIconClick, disabled = false, onEnter, ...props
 }, ref) => {
+  
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      onEnter?.();
+    }
+  };
+
   return (
-    <div className={`${containerClassName} ${disabled && 'opacity-60' }`}>
+    <div className={`${containerClassName} ${disabled && 'opacity-60'}`}>
       {label && (
         <label className="block text-[14px] font-semibold text-slate-700 mb-1 ml-1">
-          {label} {!required && <span>(optional)</span>}
+          {label} {!required && <span className="text-slate-400 font-normal">(optional)</span>}
         </label>
       )}
       <div className="relative group">
@@ -21,6 +29,7 @@ const Input = forwardRef(({
         <input
           ref={ref}
           type={type}
+          onKeyDown={handleKeyDown}
           className={`
             w-full px-4 py-2.5 bg-white border-2 border-slate-200 rounded-xl
             text-slate-900 placeholder-slate-400 font-medium
@@ -45,9 +54,9 @@ const Input = forwardRef(({
         )}
       </div>
       {error ? (
-        <p className="text-xs text-red-500 font-bold ml-1 animate-in fade-in slide-in-from-left-1">{error}</p>
+        <p className="text-xs text-red-500 font-bold ml-1 mt-1 animate-in fade-in slide-in-from-left-1">{error}</p>
       ) : helperText && (
-        <p className="text-xs text-slate-500 ml-1">{helperText}</p>
+        <p className="text-xs text-slate-500 ml-1 mt-1">{helperText}</p>
       )}
     </div>
   );
